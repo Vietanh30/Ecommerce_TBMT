@@ -1,0 +1,35 @@
+# Composer & Node
+/vendor
+/node_modules
+
+# Laravel
+/bootstrap/cache
+/storage
+/storage/logs
+/storage/framework
+/public/storage
+/public/hot
+/public/mix-manifest.json
+
+# Env
+.env
+.env.testing
+.env.local
+.env.development
+.env.production
+
+# IDE & OS
+/.idea
+/.vscode
+.DS_Store
+Thumbs.db
+
+# Logs & Debugging
+*.log
+*.sqlite
+
+# Build & Compiled
+/public/js/*.js
+/public/css/*.css
+/resources/assets/js/*.js
+/resources/assets/sass/*.scss
