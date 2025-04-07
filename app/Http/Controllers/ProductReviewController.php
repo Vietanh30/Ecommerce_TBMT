@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification as ModelsNotification;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Notification;
@@ -9,6 +10,7 @@ use App\Notifications\StatusNotification;
 use App\User;
 use App\Models\ProductReview;
 use App\Models\Response;
+
 class ProductReviewController extends Controller
 {
     /**
@@ -18,9 +20,9 @@ class ProductReviewController extends Controller
      */
     public function index()
     {
-        $reviews=ProductReview::getAllReview();
+        $reviews = ProductReview::getAllReview();
 
-        return view('backend.review.index')->with('reviews',$reviews);
+        return view('backend.review.index')->with('reviews', $reviews);
     }
 
     /**
@@ -28,47 +30,44 @@ class ProductReviewController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-
-    }
+    public function create() {}
     public function showProductReviews($productSlug)
-{
-    $product = Product::where('slug', $productSlug)->first();
-    if (!$product) {
-        return redirect()->back()->with('error', 'Sản phẩm không tồn tại.');
+    {
+        $product = Product::where('slug', $productSlug)->first();
+        if (!$product) {
+            return redirect()->back()->with('error', 'Sản phẩm không tồn tại.');
+        }
+
+        // Lấy tất cả các đánh giá cho sản phẩm
+        $reviews = ProductReview::where('product_id', $product->id)
+            ->with('responses') // Lấy các phản hồi liên quan
+            ->with(['user_info', 'responses', 'responses.user'])
+            ->get();
+
+
+        return view('frontend.product_reviews', compact('product', 'reviews'));
     }
-
-    // Lấy tất cả các đánh giá cho sản phẩm
-    $reviews = ProductReview::where('product_id', $product->id)
-                            ->with('responses') // Lấy các phản hồi liên quan
-                            ->with(['user_info', 'responses', 'responses.user'])
-                            ->get();
-
-
-    return view('frontend.product_reviews', compact('product', 'reviews'));
-}
 
     public function storeResponse(Request $request, $reviewId)
-{
-    $request->validate([
-        'content' => 'required|string|max:255',
-    ]);
+    {
+        $request->validate([
+            'content' => 'required|string|max:255',
+        ]);
 
-    // Tạo phản hồi mới
-    $response = Response::create([
-        'review_id' => $reviewId,
-        'user_id' => auth()->id(),
-        'content' => $request->input('content'),
-    ]);
+        // Tạo phản hồi mới
+        $response = Response::create([
+            'review_id' => $reviewId,
+            'user_id' => auth()->id(),
+            'content' => $request->input('content'),
+        ]);
 
-    // Cập nhật review với response_id
-    $review = ProductReview::find($reviewId);
-    $review->response_id = $response->id;
-    $review->save();
+        // Cập nhật review với response_id
+        $review = ProductReview::find($reviewId);
+        $review->response_id = $response->id;
+        $review->save();
 
-    return redirect()->back()->with('success', 'Phản hồi của bạn đã được gửi.');
-}
+        return redirect()->back()->with('success', 'Phản hồi của bạn đã được gửi.');
+    }
 
 
     public function updateResponse(Request $request, $reviewId)
@@ -100,31 +99,30 @@ class ProductReviewController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request,[
-            'rate'=>'required|numeric|min:1'
+        $this->validate($request, [
+            'rate' => 'required|numeric|min:1'
         ]);
-        $product_info=Product::getProductBySlug($request->slug);
+        $product_info = Product::getProductBySlug($request->slug);
         //  return $product_info;
         // return $request->all();
-        $data=$request->all();
-        $data['product_id']=$product_info->id;
-        $data['user_id']=$request->user()->id;
-        $data['status']='active';
+        $data = $request->all();
+        $data['product_id'] = $product_info->id;
+        $data['user_id'] = $request->user()->id;
+        $data['status'] = 'active';
         // dd($data);
-        $status=ProductReview::create($data);
+        $status = ProductReview::create($data);
 
-        $user=User::where('role','admin')->get();
-        $details=[
-            'title'=>'New Product Rating!',
-            'actionURL'=>route('product-detail',$product_info->slug),
-            'fas'=>'fa-star'
+        $user = User::where('role', 'admin')->get();
+        $details = [
+            'title' => 'New Product Rating!',
+            'actionURL' => route('product-detail', $product_info->slug),
+            'fas' => 'fa-star'
         ];
-        Notification::send($user,new StatusNotification($details));
-        if($status){
-            request()->session()->flash('success','Thank you for your honest review!');
-        }
-        else{
-            request()->session()->flash('error','Something went wrong! Please try again!!');
+        ModelsNotification::send($user, new StatusNotification($details));
+        if ($status) {
+            request()->session()->flash('success', 'Thank you for your honest review!');
+        } else {
+            request()->session()->flash('error', 'Something went wrong! Please try again!!');
         }
         return redirect()->back();
     }
@@ -148,9 +146,9 @@ class ProductReviewController extends Controller
      */
     public function edit($id)
     {
-        $review=ProductReview::find($id);
+        $review = ProductReview::find($id);
         // return $review;
-        return view('backend.review.edit')->with('review',$review);
+        return view('backend.review.edit')->with('review', $review);
     }
 
     /**
@@ -162,13 +160,13 @@ class ProductReviewController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $review=ProductReview::find($id);
-        if($review){
+        $review = ProductReview::find($id);
+        if ($review) {
             // $product_info=Product::getProductBySlug($request->slug);
             //  return $product_info;
             // return $request->all();
-            $data=$request->all();
-            $status=$review->fill($data)->update();
+            $data = $request->all();
+            $status = $review->fill($data)->update();
 
             // $user=User::where('role','admin')->get();
             // return $user;
@@ -178,15 +176,13 @@ class ProductReviewController extends Controller
             //     'fas'=>'fa-star'
             // ];
             // Notification::send($user,new StatusNotification($details));
-            if($status){
-                request()->session()->flash('success','Review updated');
+            if ($status) {
+                request()->session()->flash('success', 'Review updated');
+            } else {
+                request()->session()->flash('error', 'Something went wrong! Please try again!!');
             }
-            else{
-                request()->session()->flash('error','Something went wrong! Please try again!!');
-            }
-        }
-        else{
-            request()->session()->flash('error','Review not found!!');
+        } else {
+            request()->session()->flash('error', 'Review not found!!');
         }
 
         return redirect()->route('review.index');
@@ -200,13 +196,12 @@ class ProductReviewController extends Controller
      */
     public function destroy($id)
     {
-        $review=ProductReview::find($id);
-        $status=$review->delete();
-        if($status){
-            request()->session()->flash('success','Review deleted');
-        }
-        else{
-            request()->session()->flash('error','Something went wrong! Try again');
+        $review = ProductReview::find($id);
+        $status = $review->delete();
+        if ($status) {
+            request()->session()->flash('success', 'Review deleted');
+        } else {
+            request()->session()->flash('error', 'Something went wrong! Try again');
         }
         return redirect()->route('review.index');
     }
