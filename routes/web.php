@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SePayWebhookController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -196,6 +197,5 @@ Route::group(['prefix' => '/user', 'middleware' => ['user']], function () {
     Route::post('change-password', 'HomeController@changPasswordStore')->name('change.password');
 });
 
-use App\Http\Controllers\SePayWebhookController;
 
-Route::post('/sepay-webhook', [SePayWebhookController::class, 'handleWebhook']);
+Route::post('/hooks/sepay-payment', [SePayWebhookController::class, 'handleWebhook']);
