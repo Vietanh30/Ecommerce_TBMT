@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SePayWebhookController extends Controller
 {
@@ -11,7 +12,7 @@ class SePayWebhookController extends Controller
     {
         // Lấy dữ liệu từ webhook
         $data = $request->json()->all();
-        
+        Log::info(json_encode($data));
         // Kiểm tra dữ liệu có hợp lệ không
         if (empty($data)) {
             return response()->json(['success' => false, 'message' => 'No data received']);
