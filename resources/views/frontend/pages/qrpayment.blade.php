@@ -1,31 +1,36 @@
 <div class="qrpayment-container">
     <div class="row">
         <div class="col-md-8">
-            <h1><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-check-circle text-success" viewBox="0 0 16 16">
-                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                    <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                </svg> Đặt hàng thành công</h1>
-            <span class="text-muted">Mã đơn hàng #DH{{ $order_number }}</span>
-            <div id="success_pay_box" class="p-2 text-center pt-3 border border-2 mt-5" style="display:none">
-                <h2 class="text-success"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-check-circle text-success" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                        <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                    </svg> Thanh toán thành công</h2>
-                <p class="text-center text-success">Chúng tôi đã nhận được thanh toán, đơn hàng sẽ được chuyển đến quý khách trong thời gian sớm nhất!</p>
+            <div class="container" style="display: flex; justify-content: space-between;">
+                <div>
+
+                    <h1><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-check-circle text-success" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
+                        </svg> Đặt hàng thành công</h1>
+                    <span class="text-muted">Mã đơn hàng #DH{{ $order_number }}</span>
+                </div>
+                <div id="success_pay_box" class="p-2 text-center pt-3 border border-2 mt-5" style="display:none">
+                    <h2 class="text-success"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-check-circle text-success" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
+                        </svg> Thanh toán thành công</h2>
+                    <p class="text-center text-success">Chúng tôi đã nhận được thanh toán, đơn hàng sẽ được chuyển đến quý khách trong thời gian sớm nhất!</p>
+                    <span class="text-muted">Mã đơn hàng #DH{{ $order_number }}</span>
+                </div>
             </div>
-            <span class="text-muted">Mã đơn hàng #DH{{ $order_number }}</span>
 
             <div class="payment-options">
                 <!-- Cách 1 -->
                 <div class="payment-option">
                     <p>Cách 1: Mở app ngân hàng và quét mã QR</p>
                     <div class="text-center my-3">
-                        <!-- <img src="https://qr.sepay.vn/img?bank=Mbbank&acc=230102003&template=compact&amount={{$total_amount}}&des={{$order_number}}" alt="QR Code"> -->
-                        <img src="https://qr.sepay.vn/img?acc=9624712345678&bank=BIDV&&template=compact&amount={{$total_amount}}&des={{$order_number}}" alt="QR Code">
+                        <img src="https://qr.sepay.vn/img?bank=Mbbank&acc=VQRQABRPR8536&template=compact&amount={{$total_amount}}&des=DH{{$order_number}}" alt="QR Code">
+                        <!-- <img src="https://qr.sepay.vn/img?acc=9624712345678&bank=BIDV&&template=compact&amount={{$total_amount}}&des={{$order_number}}" alt="QR Code"> -->
                         <p class="mt-2">
                             <td><span class="fw-bold">Tổng</span></td>
                             <td class="text-end fw-bold">{{ number_format($total_amount, 0, ',', '.') }}₫</td>
-                            <span>Trạng thái: Chờ thanh toán...</span>
+                            <span id="payment_status_text">Trạng thái: Chờ thanh toán...</span>
                         <div class="spinner-border" role="status"></div>
                         </p>
                     </div>
@@ -179,36 +184,44 @@
             </style>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
             <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+            <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+            <script>
+                var pay_status = 'Unpaid';
 
+                function getOrderIdFromPath() {
+                    const pathSegments = window.location.pathname.split('/');
+                    return pathSegments[3]; // Lấy order_id từ đường dẫn
+                }
 
-            <?php
-            // Nếu đang ở giao diện checkout
-            if (isset($order_id)) { ?>
-                <script>
-                    var pay_status = 'Unpaid';
+                const orderId = getOrderIdFromPath();
+                console.log("✅ orderId trong JS:", orderId);
 
-                    // Hàm kiểm tra trạng thái đơn hàng
-                    // Sử dụng Ajax để lấy trạng thái đơn hàng. Nếu thanh toán thành công thì hiển thị Box đã thanh toán thành công, ẩn box checkout
-                    function check_payment_status() {
-                        if (pay_status == 'Unpaid') {
-                            $.ajax({
-                                type: "POST",
-                                data: {
-                                    order_id: <?= $order_id; ?>
-                                },
-                                url: "https://payment-gateway-demo.sepay.dev/check_payment_status.php",
-                                dataType: "json",
-                                success: function(data) {
-                                    if (data.payment_status == "Paid") {
-                                        $("#checkout_box").hide();
-                                        $("#success_pay_box").show();
-                                        pay_status = 'Paid';
-                                    }
+                function check_payment_status() {
+                    if (pay_status === 'Unpaid' && orderId) {
+                        $.ajax({
+                            type: "GET",
+                            url: "/check-payment-status?id=" + orderId,
+                            dataType: "json",
+                            success: function(data) {
+                                console.log("✅ Kết quả:", data);
+                                if (data.payment_status === "paid") {
+                                    $("#checkout_box").hide();
+                                    $("#success_pay_box").show();
+                                    pay_status = 'paid';
+                                    $("#payment_status_text").text("Trạng thái: Đã thanh toán ✅");
                                 }
-                            });
-                        }
+                                if (pay_status === 'paid') {
+                                    $("#payment_status_text").text("Trạng thái: Đã thanh toán ✅");
+                                } else {
+                                    $("#payment_status_text").text("Trạng thái: Chờ thanh toán...");
+                                }
+                            },
+                            error: function(err) {
+                                console.error("❌ Lỗi:", err);
+                            }
+                        });
                     }
-                    //Kiểm tra trạng thái đơn hàng 1 giây một lần
-                    setInterval(check_payment_status, 1000);
-                </script>
-            <?php } ?>
+                }
+
+                setInterval(check_payment_status, 1000);
+            </script>

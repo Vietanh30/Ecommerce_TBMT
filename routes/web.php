@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\qrpaymentController;
 use App\Http\Controllers\SePayWebhookController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -195,7 +196,9 @@ Route::group(['prefix' => '/user', 'middleware' => ['user']], function () {
     // Password Change
     Route::get('change-password', 'HomeController@changePassword')->name('user.change.password.form');
     Route::post('change-password', 'HomeController@changPasswordStore')->name('change.password');
+    // Route::get('check-payment-status', [qrpaymentController::class, 'checkPaymentStatus']);
 });
 
+Route::get('/check-payment-status', [qrpaymentController::class, 'checkPaymentStatus']);
 
 Route::post('/hooks/sepay-payment', [SePayWebhookController::class, 'handleWebhook']);

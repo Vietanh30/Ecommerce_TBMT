@@ -6,49 +6,69 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Product;
 use DB;
+use Illuminate\Support\Facades\DB as FacadesDB;
 
 class qrpaymentController extends Controller
 {
     public function payment(Request $request)
     {
-        // Lấy giỏ hàng của người dùng
-        $cart = Cart::where('user_id', auth()->user()->id)->where('order_id', null)->get()->toArray();
-        
-        $data = [];
+        $userId = auth()->user()->id;
+        $cartItems = Cart::where('user_id', $userId)->whereNull('order_id')->get();
 
-        // Chuẩn bị dữ liệu cho thanh toán QR
-        $data['items'] = array_map(function ($item) use ($cart) {
-            $name = Product::where('id', $item['product_id'])->pluck('title')->first();
-            return [
-                'name' => $name,
-                'price' => $item['price'],
-                'desc' => 'Thank you for using QRPay',
-                'qty' => $item['quantity'],
-            ];
-        }, $cart);
-
-        // Tính tổng số tiền
-        $totalAmount = 0;
-        foreach ($data['items'] as $item) {
-            $totalAmount += $item['price'] * $item['qty'];
+        if ($cartItems->isEmpty()) {
+            return redirect()->back()->with('error', 'Giỏ hàng của bạn đang trống.');
         }
-        
-        // Gán tổng số tiền vào biến data
-        $data['total_amount'] = $totalAmount;
 
-        // Tạo mã đơn hàng
-        $data['invoice_id'] = 'ORD-' . strtoupper(uniqid());
-        $data['invoice_description'] = "Order #{$data['invoice_id']} Invoice";
+        // Tính tổng
+        $subTotal = $cartItems->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
 
-        // Giả sử bạn có một API tạo QR code thanh toán
-        $qrCodeLink = $this->generateQRCode($data);
+        $quantity = $cartItems->sum('quantity');
+        $totalAmount = $subTotal; // Nếu chưa có giảm giá, phí vận chuyển
 
-        // Lưu mã đơn hàng vào session
-        session()->put('order_id', $data['invoice_id']);
+        $invoiceId = 'ORD-' . strtoupper(uniqid());
 
-        // Trả về link QR Code
-        return view('frontend.pages.qrpayment', compact('qrCodeLink'));
+        // Lấy thông tin người dùng (giả sử từ auth user)
+        $user = auth()->user();
+
+        // Tạo đơn hàng
+        FacadesDB::table('orders')->insert([
+            'order_number'     => $invoiceId,
+            'user_id'          => $userId,
+            'sub_total'        => $subTotal,
+            'total_amount'     => $totalAmount,
+            'quantity'         => $quantity,
+            'payment_method'   => 'QRPay',
+            'payment_status'   => 'Unpaid',
+            'status'           => 'pending', // hoặc default là `processing`
+            'fullname'         => $user->name ?? 'Khách hàng', // nếu không có name, sửa lại theo field bạn có
+            'email'            => $user->email,
+            'address'          => $user->address ?? 'Chưa có địa chỉ', // bạn sửa theo nhu cầu
+            'phone'            => $user->phone ?? '',
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        // Gán order_id cho các item trong cart
+        Cart::where('user_id', $userId)->whereNull('order_id')->update([
+            'order_id' => $invoiceId
+        ]);
+
+        // Tạo link QR code
+        $qrCodeLink = $this->generateQRCode([
+            'total_amount' => $totalAmount,
+            'invoice_id' => $invoiceId
+        ]);
+
+        session()->put('order_id', $invoiceId);
+
+        return view('frontend.pages.qrpayment', [
+            'qrCodeLink' => $qrCodeLink,
+            'order_id' => $invoiceId,
+        ]);
     }
+
 
     /**
      * Generate QR code payment link (this function is an example)
@@ -58,7 +78,7 @@ class qrpaymentController extends Controller
         // Gọi API bên ngoài để tạo QR Code, đây chỉ là một ví dụ giả lập
         $paymentLink = "https://qr.sepay.vn/img?bank=ACBBank&acc=18721251&template=compact&amount=" . intval($data['total_amount']) . "&des=DH" . $data['invoice_id'];
 
-        
+
         // Bạn có thể sử dụng một thư viện như `endroid/qr-code` để tạo QR code ở đây
         // return QRCode::generate($paymentLink);
 
@@ -74,23 +94,28 @@ class qrpaymentController extends Controller
 
     public function success(Request $request)
     {
-        // Lấy mã đơn hàng từ request
         $orderId = session('order_id');
 
-        // Giả sử đây là API trả về trạng thái thanh toán QR
         $paymentStatus = $this->checkQRPaymentStatus($orderId);
 
         if ($paymentStatus === 'success') {
             // Cập nhật trạng thái đơn hàng
+            FacadesDB::table('orders')->where('order_number', $orderId)->update([
+                'payment_status' => 'Paid',
+                'status' => 'confirmed',
+                'updated_at' => now(),
+            ]);
+
+            // Cập nhật giỏ hàng đã thanh toán
             Cart::where('user_id', auth()->user()->id)
                 ->where('order_id', $orderId)
                 ->update(['order_status' => 'paid']);
 
             session()->forget('cart');
-            request()->session()->flash('success', 'You have successfully paid through QRPay! Thank you.');
+            request()->session()->flash('success', 'Bạn đã thanh toán thành công qua QR!');
             return redirect()->route('home');
         } else {
-            request()->session()->flash('error', 'Something went wrong. Please try again.');
+            request()->session()->flash('error', 'Thanh toán thất bại. Vui lòng thử lại.');
             return redirect()->route('qrpayment.cancel');
         }
     }
@@ -105,5 +130,19 @@ class qrpaymentController extends Controller
         // return 'success' | 'failed'
 
         return 'success';  // Giả lập thanh toán thành công
+    }
+    public function checkPaymentStatus(Request $request)
+    {
+        $id = $request->input('id');
+
+        $order = FacadesDB::table('orders')->where('order_number', $id)->first();
+
+        if (!$order) {
+            return response()->json(['payment_status' => 'NotFound']);
+        }
+
+        return response()->json([
+            'payment_status' => $order->payment_status,
+        ]);
     }
 }

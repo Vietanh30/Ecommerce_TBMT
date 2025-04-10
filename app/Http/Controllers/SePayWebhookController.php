@@ -49,28 +49,35 @@ class SePayWebhookController extends Controller
         ]);
 
         // Tách mã đơn hàng từ nội dung thanh toán
-        preg_match('/DH(\d+)/', $transactionContent, $matches);
+        preg_match('/DHORD([A-Z0-9]+)/i', $transactionContent, $matches);
         $payOrderId = $matches[1] ?? null;
 
-        if (!is_numeric($payOrderId)) {
-            return response()->json(['success' => false, 'message' => 'Order not found.']);
+        if (!$payOrderId) {
+            Log::info('Order ID not found in transaction content');
+            return response()->json(['success' => false, 'message' => 'Order ID not found in transaction content']);
         }
+
+        // Format order ID as "ORD-WPYWWOWXTC"
+        $formattedOrderId = "ORD-" . $payOrderId;
+        Log::info('Pay Order ID: ' . $formattedOrderId);
 
         // Tìm và cập nhật đơn hàng
         $order = DB::table('orders')
-            ->where('id', $payOrderId)
-            ->where('total', $amountIn)
+            ->where('order_number', $formattedOrderId)
+            ->where('total_amount', $amountIn)
             ->where('payment_status', 'Unpaid')
             ->first();
 
         if (!$order) {
+            Log::info('Order not found or already paid: ' . $formattedOrderId);
             return response()->json(['success' => false, 'message' => 'Order not found or already paid.']);
         }
 
         DB::table('orders')
-            ->where('id', $payOrderId)
+            ->where('order_number', $formattedOrderId)
             ->update(['payment_status' => 'Paid']);
 
+        Log::info('Order updated successfully: ' . $formattedOrderId);
         return response()->json(['success' => true]);
     }
 }
