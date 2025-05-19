@@ -18,17 +18,17 @@
             <select name="month" id="month" class="form-control mr-3">
                 @for ($i = 1; $i <= 12; $i++)
                     <option value="{{ $i }}" {{ $i == $month ? 'selected' : '' }}>
-                        {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                    {{ date('F', mktime(0, 0, 0, $i, 1)) }}
                     </option>
-                @endfor
+                    @endfor
             </select>
 
             <label for="year" class="mr-2">Chọn Năm:</label>
             <select name="year" id="year" class="form-control mr-3">
                 @foreach(range(2020, \Carbon\Carbon::now()->year) as $yearOption)
-                    <option value="{{ $yearOption }}" {{ $yearOption == $year ? 'selected' : '' }}>
-                        {{ $yearOption }}
-                    </option>
+                <option value="{{ $yearOption }}" {{ $yearOption == $year ? 'selected' : '' }}>
+                    {{ $yearOption }}
+                </option>
                 @endforeach
             </select>
 
@@ -38,7 +38,7 @@
 
             <!-- Nút Xuất Excel -->
             <a href="{{ route('order.export', ['month' => request('month'), 'year' => request('year')]) }}"
-               class="btn btn-success ml-2">
+                class="btn btn-success ml-2">
                 <i class="fas fa-file-excel"></i> Xuất Excel
             </a>
         </form>
@@ -57,7 +57,7 @@
                 </thead>
                 <tbody>
                     @php
-                        $totalRevenue = 0; // Biến tính tổng doanh thu
+                    $totalRevenue = 0; // Biến tính tổng doanh thu
                     @endphp
                     @foreach($data as $index => $item)
                     <tr>
@@ -67,13 +67,13 @@
                         <td>{{ number_format($item['total_amount'], 0, ',', '.') }} VND</td>
                         <td>
                             <a href="{{ route('export.product.details', ['title' => $item['title'], 'month' => $month, 'year' => $year]) }}"
-                               class="btn btn-info btn-sm">
+                                class="btn btn-info btn-sm">
                                 <i class="fas fa-file-excel"></i> Xuất Chi Tiết
                             </a>
                         </td>
                     </tr>
                     @php
-                        $totalRevenue += $item['total_amount'];
+                    $totalRevenue += $item['total_amount'];
                     @endphp
                     @endforeach
                 </tbody>

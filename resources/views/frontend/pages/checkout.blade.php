@@ -65,8 +65,8 @@
 
                             <div class="col-lg-6 col-md-6 col-12">
                                 <div class="form-group">
-                                    <label>Địa chỉ</label>
-                                    <input type="text" name="address" placeholder="" value="{{old('address')}}">
+                                    <label>Địa chỉ cụ thể (Số nhà, tên đường...)</label>
+                                    <input type="text" name="address" placeholder="Nhập số nhà, tên đường..." value="{{old('address')}}">
                                     @error('address')
                                     <span class='text-danger'>{{$message}}</span>
                                     @enderror
@@ -83,18 +83,16 @@
                             <div class="col-lg-4 col-md-4 col-12">
                                 <div class="form-group1">
                                     <label for="district">Huyện/Quận:</label>
-                                    <select id="district">
-
-                                    </select>
+                                    <select id="district"></select>
+                                    <input type="hidden" name="district" id="district_input">
                                 </div>
                             </div>
 
                             <div class="col-lg-4 col-md-4 col-12">
                                 <div class="form-group1">
                                     <label for="ward">Phường/Xã:</label>
-                                    <select id="ward">
-
-                                    </select>
+                                    <select id="ward"></select>
+                                    <input type="hidden" name="ward" id="ward_input">
                                 </div>
                             </div>
 
@@ -470,5 +468,15 @@
     $('select.nice-select').niceSelect();
 </script>
 
+<script>
+    $(document).ready(function() {
+        $('#ward').on('change', function() {
+            $('#ward_input').val($(this).val());
+        });
+        $('#district').on('change', function() {
+            $('#district_input').val($(this).val());
+        });
+    });
+</script>
 
 @endpush

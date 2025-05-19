@@ -55,6 +55,16 @@ class OrderController extends Controller
             'email' => 'required|string|email',
         ]);
 
+        // Gộp địa chỉ cụ thể, phường/xã, quận/huyện
+        $full_address = $request->address;
+        if ($request->ward) {
+            $full_address .= ', ' . $request->ward;
+        }
+        if ($request->district) {
+            $full_address .= ', ' . $request->district;
+        }
+        $full_address .= ', Thành phố Hà Nội';
+
         // Kiểm tra giỏ hàng
         if (empty(Cart::where('user_id', auth()->user()->id)->where('order_id', null)->first())) {
             request()->session()->flash('error', 'Cart is Empty!');
@@ -64,6 +74,7 @@ class OrderController extends Controller
         // Tạo đơn hàng mới
         $order = new Order();
         $order_data = $request->all();
+        $order_data['address'] = $full_address; // Gán địa chỉ đã gộp
         $order_data['order_number'] = 'ORD-' . strtoupper(Str::random(10));
         $order_data['user_id'] = $request->user()->id;
         $order_data['sub_total'] = Helper::totalCartPrice();

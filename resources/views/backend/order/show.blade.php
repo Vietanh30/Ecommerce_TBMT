@@ -20,7 +20,6 @@
           <th>Name</th>
           <th>Email</th>
           <th>Qty.</th>
-
           <th>Total</th>
           <th>Status</th>
           <th>Action</th>
@@ -33,17 +32,16 @@
           <td>{{ $order->fullname }}</td>
           <td>{{ $order->email }}</td>
           <td>{{ $order->quantity }}</td>
-
           <td>${{ number_format($order->total_amount, 2) }}</td>
           <td>
             @if($order->status == 'new')
-              <span class="badge badge-primary">NEW</span>
+            <span class="badge badge-primary">NEW</span>
             @elseif($order->status == 'process')
-              <span class="badge badge-warning">PROCESSING</span>
+            <span class="badge badge-warning">PROCESSING</span>
             @elseif($order->status == 'delivered')
-              <span class="badge badge-success">DELIVERED</span>
+            <span class="badge badge-success">DELIVERED</span>
             @else
-              <span class="badge badge-danger">{{ $order->status }}</span>
+            <span class="badge badge-danger">{{ $order->status }}</span>
             @endif
           </td>
           <td>
@@ -86,14 +84,6 @@
                   <td> : {{ ucfirst($order->status) }}</td>
                 </tr>
                 <tr>
-                  <td>Shipping Charge</td>
-                  <td> : $ {{ number_format($order->shipping->price ?? 0, 2) }}</td> <!-- Null-safe for shipping -->
-                </tr>
-                <tr>
-                  <td>Coupon</td>
-                  <td> : $ {{ number_format($order->coupon ?? 0, 2) }}</td> <!-- Null-safe for coupon -->
-                </tr>
-                <tr>
                   <td>Total Amount</td>
                   <td> : $ {{ number_format($order->total_amount, 2) }}</td>
                 </tr>
@@ -101,13 +91,13 @@
                   <td>Payment Method</td>
                   <td> :
                     @if($order->payment_method == 'cod')
-                      Cash on Delivery
+                    Cash on Delivery
                     @elseif($order->payment_method == 'paypal')
-                      Paypal
-                    @elseif($order->payment_method == 'cardpay')
-                      Card Payment
+                    Paypal
+                    @elseif($order->payment_method == 'qrpay')
+                    QR Payment
                     @else
-                      {{ ucfirst($order->payment_method) }}
+                    {{ ucfirst($order->payment_method) }}
                     @endif
                   </td>
                 </tr>
@@ -115,11 +105,11 @@
                   <td>Payment Status</td>
                   <td> :
                     @if($order->payment_status == 'paid')
-                      <span class="badge badge-success">Paid</span>
+                    <span class="badge badge-success">Paid</span>
                     @elseif($order->payment_status == 'unpaid')
-                      <span class="badge badge-danger">Unpaid</span>
+                    <span class="badge badge-danger">Unpaid</span>
                     @else
-                      {{ ucfirst($order->payment_status) }}
+                    {{ ucfirst($order->payment_status) }}
                     @endif
                   </td>
                 </tr>
@@ -133,7 +123,7 @@
               <table class="table">
                 <tr>
                   <td>Full Name</td>
-                  <td> : {{ $order->first_name }} {{ $order->last_name }}</td>
+                  <td> : {{ $order->fullname }}</td>
                 </tr>
                 <tr>
                   <td>Email</td>
@@ -145,15 +135,7 @@
                 </tr>
                 <tr>
                   <td>Address</td>
-                  <td> : {{ $order->address1 }}, {{ $order->address2 }}</td>
-                </tr>
-                <tr>
-                  <td>Country</td>
-                  <td> : {{ $order->country }}</td>
-                </tr>
-                <tr>
-                  <td>Post Code</td>
-                  <td> : {{ $order->post_code }}</td>
+                  <td> : {{ $order->address }}</td>
                 </tr>
               </table>
             </div>
@@ -168,11 +150,14 @@
 
 @push('styles')
 <style>
-  .order-info, .shipping-info {
+  .order-info,
+  .shipping-info {
     background: #ECECEC;
     padding: 20px;
   }
-  .order-info h4, .shipping-info h4 {
+
+  .order-info h4,
+  .shipping-info h4 {
     text-decoration: underline;
   }
 </style>
